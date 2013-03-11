@@ -22,7 +22,7 @@ String.prototype.addSlashes = function() {
   return this.replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0");
 };
 
-function render(opts, hasSendfile, next) {
+function render(opts, response, next) {
   var paths = {};
   async.auto({
     tempDir: function(cb) {
@@ -55,7 +55,10 @@ function render(opts, hasSendfile, next) {
     }],
     sendFile: ['tempDir', 'blenderOutput', function(cb, r) {
       console.log(r.blenderOutput[0]);
-      hasSendfile.sendfile(paths.output, cb);
+      if (response.header) {
+        response.header("X-Blender-Output", JSON.stringify(r.blenderOutput));
+      }
+      response.sendfile(paths.output, cb);
     }],
     finish: ['tempDir', 'sendFile', function(cb, r) {
       console.log("Removing", r.tempDir);
