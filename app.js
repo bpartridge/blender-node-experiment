@@ -70,10 +70,7 @@ function render(opts, response, next) {
 if (process.env.SINGLE_RUN) {
   var fakeSendFile = function(f, cb) {
     console.log("Sending", f);
-    fs.stat(f, function(err, stats) {
-      console.log(stats);
-      cb(err);
-    });
+    exec("open -a Preview -W " + f, cb);
   };
   render({}, {sendfile: fakeSendFile}, function(err) {
     if (err) console.error(err);
