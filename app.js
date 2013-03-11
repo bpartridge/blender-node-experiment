@@ -36,7 +36,7 @@ function render(json, hasSendfile, next) {
       paths.blend = path.resolve(__dirname, 'assets', 'main.blend');
       paths.outputNoSuffix = path.resolve(r.tempDir, 'output');
       paths.output = paths.outputNoSuffix + "0001.png";
-      var command = "blender -b " + paths.blend +
+      var command = "blender/blender -b " + paths.blend +
         " -P " + paths.program +
         " -o " + paths.outputNoSuffix + " -F PNG -f 1 -x 1";
       console.log(command);
