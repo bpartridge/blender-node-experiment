@@ -49,7 +49,7 @@ function render(opts, hasSendfile, next) {
         " -b " + paths.blend +
         " -P " + paths.program +
         " -o " + paths.outputNoSuffix + 
-        " -F PNG -f 1 -x 1";
+        " -F PNG -f 1 -x 1 -noaudio";
       console.log(command);
       exec(command, cb);
     }],
