@@ -11,12 +11,18 @@ app.use(app.router);
 app.use(express.errorHandler());
 
 app.all('*.png', function(req, res, next) {
-  render({}, res, function(err) {
+  render(req.query, res, function(err) {
     if (err) next(err);
   });
 });
 
-function render(json, hasSendfile, next) {
+// http://stackoverflow.com/questions/770523/escaping-strings-in-javascript
+String.prototype.addSlashes = function() { 
+  //no need to do (str+'') anymore because 'this' can only be a string
+  return this.replace(/([\\"'])/g, "\\$1").replace(/\0/g, "\\0");
+};
+
+function render(opts, hasSendfile, next) {
   var paths = {};
   async.auto({
     tempDir: function(cb) {
@@ -26,9 +32,11 @@ function render(json, hasSendfile, next) {
       fs.readFile(path.resolve(__dirname, 'template.py'), 'utf-8', cb);
     },
     writePyTemplate: ['tempDir', 'pyTemplate', function(cb, r) {
-      console.log(r);
       // TODO: do replacements based on the request parameters
-      var rendered = r.pyTemplate;
+      rendered = r.pyTemplate.replace(/\{\{(\w+)\}\}/gi, function(match, p1) {
+        return (opts[p1] || "").addSlashes();
+      });
+      console.log(rendered);
       paths.program = path.resolve(r.tempDir, 'program.py');
       fs.writeFile(paths.program, rendered, cb);
     }],

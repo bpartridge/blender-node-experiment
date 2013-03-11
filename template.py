@@ -2,7 +2,7 @@
 import sys
 
 try:
-  print("Hello, World!")
-  # raise("hi")
+  bpy.data.images['strapimage'].filepath = "//{{strapimage}}"
+  bpy.data.images['bodyimage'].filepath = "//{{bodyimage}}"
 except:
   sys.exit(1)
