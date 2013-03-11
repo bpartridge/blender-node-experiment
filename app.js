@@ -41,11 +41,10 @@ function render(opts, response, next) {
       fs.writeFile(paths.program, rendered, cb);
     }],
     blenderOutput: ['tempDir', 'writePyTemplate', function(cb, r) {
-      paths.blender = path.resolve(__dirname, 'blender', 'blender');
       paths.blend = path.resolve(__dirname, 'assets', 'main.blend');
       paths.outputNoSuffix = path.resolve(r.tempDir, 'output');
       paths.output = paths.outputNoSuffix + "0001.png";
-      var command = paths.blender +
+      var command = "blender" +
         " -b " + paths.blend +
         " -P " + paths.program +
         " -o " + paths.outputNoSuffix + 

@@ -20,7 +20,7 @@ namespace :ubuntu do
   task :install do
     sudo "add-apt-repository ppa:richarvey/nodejs -y"
     sudo "apt-get update -y"
-    sudo "apt-get install build-essential git libsdl-dev libxi-dev nodejs npm -y"
+    sudo "apt-get install build-essential git blender libsdl-dev libxi-dev nodejs npm -y"
   end
 end
 
@@ -29,4 +29,4 @@ task :download_blender do
 end
 
 before "deploy", "ubuntu:install"
-after "deploy", "download_blender"
+# after "deploy", "download_blender"
