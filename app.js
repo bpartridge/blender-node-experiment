@@ -5,6 +5,14 @@ var async = require('async');
 var fs = require('fs'), path = require('path');
 var temp = require('temp'), rimraf = require('rimraf');
 
+var poolModule = require('generic-pool');
+var blenderPool = poolModule.Pool({
+  name: 'blender',
+  create: function(cb) {cb(null, {});},
+  destroy: function(client) {},
+  max: require('os').cpus().length
+});
+
 app.use(express.favicon());
 app.use(express.logger('dev'));
 app.use(app.router);
@@ -25,6 +33,9 @@ String.prototype.addSlashes = function() {
 function render(opts, response, next) {
   var paths = {};
   async.auto({
+    acquisition: function(cb) {
+      blenderPool.acquire(cb);
+    },
     tempDir: function(cb) {
       temp.mkdir('blender', cb);
     },
@@ -36,11 +47,11 @@ function render(opts, response, next) {
       rendered = r.pyTemplate.replace(/\{\{(\w+)\}\}/gi, function(match, p1) {
         return (opts[p1] || "").addSlashes();
       });
-      console.log(rendered);
+      // console.log(rendered);
       paths.program = path.resolve(r.tempDir, 'program.py');
       fs.writeFile(paths.program, rendered, cb);
     }],
-    blenderOutput: ['tempDir', 'writePyTemplate', function(cb, r) {
+    blenderOutput: ['tempDir', 'writePyTemplate', 'acquisition', function(cb, r) {
       paths.blend = path.resolve(__dirname, 'assets', 'main.blend');
       paths.outputNoSuffix = path.resolve(r.tempDir, 'output');
       paths.output = paths.outputNoSuffix + "0001.png";
@@ -63,7 +74,10 @@ function render(opts, response, next) {
       console.log("Removing", r.tempDir);
       rimraf(r.tempDir, cb);
     }]
-  }, next);
+  }, function(err, r) {
+    if (r.acquisition) blenderPool.release(r.acquisition);
+    next(err);
+  });
 }
 
 
@@ -75,6 +89,9 @@ if (process.env.SINGLE_RUN) {
   render({}, {sendfile: fakeSendFile}, function(err) {
     if (err) console.error(err);
     else console.log('Success!');
+    blenderPool.drain(function() {
+      blenderPool.destroyAllNow();
+    });
   });
 }
 else {
