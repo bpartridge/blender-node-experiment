@@ -67,18 +67,20 @@ function render(opts, response, next) {
           _cb();
         }
       }, function(err) {
-        cb(err, newOpts);
+        if (err) return cb(err);
+        console.log(newOpts);
+        cb(null, newOpts);
       });
     },
     pyTemplate: function(cb) {
       fs.readFile(path.resolve(__dirname, 'template.py'), 'utf-8', cb);
     },
-    writePyTemplate: ['tempDir', 'pyTemplate', function(cb, r) {
+    writePyTemplate: ['tempDir', 'pyTemplate', 'fetchedOpts', function(cb, r) {
       // TODO: do replacements based on the request parameters
       rendered = r.pyTemplate.replace(/\{\{(\w+)\}\}/gi, function(match, p1) {
-        return ((opts[p1] || "") + '').addSlashes();
+        return ((r.fetchedOpts[p1] || "") + '').addSlashes();
       });
-      // console.log(rendered);
+      console.log(rendered);
       paths.program = path.resolve(r.tempDir, 'program.py');
       fs.writeFile(paths.program, rendered, cb);
     }],

@@ -10,7 +10,7 @@ def z_stretch_obj(obj, factor):
 
 try:
   z_stretch_obj(bpy.data.objects['strap'], float("{{straplen}}" or 1))
-  bpy.data.images['strapimage'].filepath = "//{{strapimage}}"
-  bpy.data.images['bodyimage'].filepath = "//{{bodyimage}}"
+  bpy.data.images['strapimage'].filepath = "{{strapimage}}"
+  bpy.data.images['bodyimage'].filepath = "{{bodyimage}}"
 except Exception as e:
   print(e)
