@@ -30,6 +30,12 @@ task :download_blender do
 end
 
 namespace :nginx do
+  desc "Create cache directory"
+  task :create_cache_dir do
+    sudo "mkdir -p /var/www"
+    sudo "chown www-data /var/www"
+  end
+
   desc "Copy nginx configuration"
   task :configure do
     sudo "cp #{release_path}/nginx.conf /etc/nginx/nginx.conf"
@@ -43,7 +49,7 @@ end
 
 before "deploy", "ubuntu:install"
 # after "deploy", "download_blender"
-after "deploy", "nginx:configure", "nginx:restart"
+after "deploy", "nginx:create_cache_dir", "nginx:configure", "nginx:restart"
 
 ##### Ensure git push #####
 
