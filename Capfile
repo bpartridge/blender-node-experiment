@@ -21,7 +21,7 @@ namespace :ubuntu do
   task :install do
     sudo "add-apt-repository ppa:richarvey/nodejs -y"
     sudo "apt-get update -y"
-    sudo "apt-get install build-essential git blender libsdl-dev libxi-dev nodejs npm -y"
+    sudo "apt-get install build-essential git blender libsdl-dev libxi-dev npm -y"
   end
 end
 
