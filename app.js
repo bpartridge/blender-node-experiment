@@ -80,13 +80,23 @@ function render(opts, response, next) {
   });
 }
 
+var args = require('optimist')
+  .usage('Render designs using Blender.\nUsage: $0')
+  .options('s', {alias: 'single', "default": false, describe: 'Single run (do not listen)'})
+  .options('o', {alias: 'options', "default": "{}", describe: 'JSON options for single run'})
+  .options('e', {alias: 'exec', "default": "qlmanage -p {}", describe: 'Command to exec after single run'})
+  .options('p', {alias: 'port', describe: 'Port to listen on (default $PORT or 3001)'})
+  .options('h', {alias: 'help', describe: 'Show this help message and exit'});
 
-if (process.env.SINGLE_RUN) {
+if (args.argv.help) return args.showHelp();
+
+if (args.argv.single) {
   var fakeSendFile = function(f, cb) {
-    console.log("Sending", f);
-    exec("open -a Preview -W " + f, cb);
+    var cmd = args.argv.exec.replace('{}', f);
+    console.log("Launching", cmd);
+    exec(cmd, cb);
   };
-  render({}, {sendfile: fakeSendFile}, function(err) {
+  render(JSON.parse(args.argv.options), {sendfile: fakeSendFile}, function(err) {
     if (err) console.error(err);
     else console.log('Success!');
     blenderPool.drain(function() {
@@ -95,7 +105,7 @@ if (process.env.SINGLE_RUN) {
   });
 }
 else {
-  var port = process.env.PORT || 3001;
+  var port = args.argv.port || process.env.PORT || 3001;
   app.listen(port, function() {
     console.log('Listening on ' + port);
   });
