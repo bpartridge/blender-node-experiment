@@ -30,3 +30,42 @@ end
 
 before "deploy", "ubuntu:install"
 # after "deploy", "download_blender"
+
+
+
+##### Ensure git push #####
+
+namespace :deploy do
+  desc "Push local changes to Git repository"
+  task :push do
+ 
+    # Check for any local changes that haven't been committed
+    # Use 'cap deploy:push IGNORE_DEPLOY_RB=1' to ignore changes to this file (for testing)
+    status = %x(git status --porcelain).chomp
+    if status != ""
+      if status !~ %r{^[M ][M ] config/deploy.rb$}
+        raise Capistrano::Error, "Local git repository has uncommitted changes"
+      elsif !ENV["IGNORE_DEPLOY_RB"]
+        # This is used for testing changes to this script without committing them first
+        raise Capistrano::Error, "Local git repository has uncommitted changes (set IGNORE_DEPLOY_RB=1 to ignore changes to deploy.rb)"
+      end
+    end
+ 
+    # Check we are on the master branch, so we can't forget to merge before deploying
+    branch = %x(git branch --no-color 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \\(.*\\)/\\1/').chomp
+    if branch != "master" && !ENV["IGNORE_BRANCH"]
+      raise Capistrano::Error, "Not on master branch (set IGNORE_BRANCH=1 to ignore)"
+    end
+ 
+    # Push the changes
+    if ! system "git push #{fetch(:repository)} master"
+      raise Capistrano::Error, "Failed to push changes to #{fetch(:repository)}"
+    end
+ 
+  end
+end
+ 
+if !ENV["NO_PUSH"]
+  before "deploy", "deploy:push"
+  before "deploy:migrations", "deploy:push"
+end
