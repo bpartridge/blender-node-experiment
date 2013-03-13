@@ -47,7 +47,7 @@ namespace :nginx do
   end
 end
 
-before "deploy", "ubuntu:install"
+# before "deploy", "ubuntu:install"
 # after "deploy", "download_blender"
 after "deploy", "nginx:create_cache_dir", "nginx:configure", "nginx:restart"
 
