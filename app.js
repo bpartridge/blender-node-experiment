@@ -5,7 +5,7 @@ var async = require('async');
 var fs = require('fs'), path = require('path');
 var url = require('url');
 var temp = require('temp'), rimraf = require('rimraf');
-var packrat = require('packrat');
+var Packrat = require('packrat');
 
 var poolModule = require('generic-pool');
 var blenderPool = poolModule.Pool({
@@ -46,7 +46,7 @@ function render(opts, response, next) {
       var queue = [], key, val, parsed, newOpts = {};
       for (key in opts) {
         val = opts[key];
-        parsed = url.parse(val);
+        parsed = url.parse(val + '');
         queue.push({
           key: key,
           val: val,
@@ -54,7 +54,7 @@ function render(opts, response, next) {
         });
       }
 
-      packrat = new Packrat();
+      packrat = new Packrat("/tmp/packrat");
       async.each(queue, function(item, _cb) {
         if (item.fetch) {
           packrat.get(item.val, function(err, file) {
@@ -66,6 +66,8 @@ function render(opts, response, next) {
           newOpts[item.key] = item.val;
           _cb();
         }
+      }, function(err) {
+        cb(err, newOpts);
       });
     },
     pyTemplate: function(cb) {
@@ -74,7 +76,7 @@ function render(opts, response, next) {
     writePyTemplate: ['tempDir', 'pyTemplate', function(cb, r) {
       // TODO: do replacements based on the request parameters
       rendered = r.pyTemplate.replace(/\{\{(\w+)\}\}/gi, function(match, p1) {
-        return (opts[p1] || "").addSlashes();
+        return ((opts[p1] || "") + '').addSlashes();
       });
       // console.log(rendered);
       paths.program = path.resolve(r.tempDir, 'program.py');
