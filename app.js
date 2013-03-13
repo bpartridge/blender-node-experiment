@@ -3,7 +3,9 @@ var app = express();
 var exec = require('child_process').exec;
 var async = require('async');
 var fs = require('fs'), path = require('path');
+var url = require('url');
 var temp = require('temp'), rimraf = require('rimraf');
+var packrat = require('packrat');
 
 var poolModule = require('generic-pool');
 var blenderPool = poolModule.Pool({
@@ -38,6 +40,33 @@ function render(opts, response, next) {
     },
     tempDir: function(cb) {
       temp.mkdir('blender', cb);
+    },
+    fetchedOpts: function(cb) {
+      // TODO: use a proxy like Squid to make this fast
+      var queue = [], key, val, parsed, newOpts = {};
+      for (key in opts) {
+        val = opts[key];
+        parsed = url.parse(val);
+        queue.push({
+          key: key,
+          val: val,
+          fetch: (parsed.protocol == 'http:' || parsed.protocol == 'https:')
+        });
+      }
+
+      packrat = new Packrat();
+      async.each(queue, function(item, _cb) {
+        if (item.fetch) {
+          packrat.get(item.val, function(err, file) {
+            if (err) return _cb(err);
+            newOpts[item.key] = file;
+            _cb();
+          });
+        } else {
+          newOpts[item.key] = item.val;
+          _cb();
+        }
+      });
     },
     pyTemplate: function(cb) {
       fs.readFile(path.resolve(__dirname, 'template.py'), 'utf-8', cb);

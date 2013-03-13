@@ -16,7 +16,9 @@
     "generic-pool": "2.x",
     "async": "*",
     "temp": "*",
-    "rimraf": "*"
+    "rimraf": "*",
+    "packrat": "*",
+    "optimist": "*"
   },
   "engines": {
     "node": "0.8.x",
