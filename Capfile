@@ -4,6 +4,7 @@ require "capistrano/node-deploy"
 set :application, "StitchYourStoryRenderer"
 set :repository,  "git@github.com:bpartridge/stitch-your-story-render.git"
 set :scm, :git
+before "deploy", "git:push"
 default_run_options[:pty] = true
 
 set :user, "ubuntu"
@@ -31,11 +32,9 @@ end
 before "deploy", "ubuntu:install"
 # after "deploy", "download_blender"
 
-
-
 ##### Ensure git push #####
 
-namespace :deploy do
+namespace :git do
   desc "Push local changes to Git repository"
   task :push do
  
@@ -63,9 +62,4 @@ namespace :deploy do
     end
  
   end
-end
- 
-if !ENV["NO_PUSH"]
-  before "deploy", "deploy:push"
-  before "deploy:migrations", "deploy:push"
 end
