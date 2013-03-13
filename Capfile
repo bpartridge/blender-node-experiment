@@ -1,10 +1,10 @@
+before "deploy", "git:push"
 require "capistrano/node-deploy"
 # https://github.com/loopj/capistrano-node-deploy/blob/master/lib/capistrano/node-deploy.rb
 
 set :application, "StitchYourStoryRenderer"
 set :repository,  "git@github.com:bpartridge/stitch-your-story-render.git"
 set :scm, :git
-before "deploy", "git:push"
 default_run_options[:pty] = true
 
 set :user, "ubuntu"
@@ -29,8 +29,21 @@ task :download_blender do
   run "cd #{release_path} && npm run download-blender"
 end
 
+namespace :nginx do
+  desc "Copy nginx configuration"
+  task :configure do
+    sudo "cp #{release_path}/nginx.conf /etc/nginx/nginx.conf"
+  end
+
+  desc "Restart nginx"
+  task :restart do
+    sudo "/etc/init.d/nginx reload"
+  end
+end
+
 before "deploy", "ubuntu:install"
 # after "deploy", "download_blender"
+after "deploy", "nginx:configure", "nginx:restart"
 
 ##### Ensure git push #####
 
